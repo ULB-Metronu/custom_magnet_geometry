@@ -9,6 +9,13 @@ set(CMAKE_PREFIX_PATH /Users/nevay/physics/reps/bdsim-develop-install/lib/cmake/
 find_package(BDSIM REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 
+# GDML (on by default)
+option( USE_GDML "Include GDML support."  ON )
+if(USE_GDML)
+    add_definitions("-DUSE_GDML")
+    message(STATUS "GDML support ON")
+endif()
+
 # add headers from BDSIM
 include_directories(${BDSIM_INCLUDE_DIR}/bdsim)
 

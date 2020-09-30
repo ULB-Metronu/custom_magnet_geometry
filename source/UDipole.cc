@@ -43,6 +43,10 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 #include "BDSSimpleComponent.hh"
 #include "BDSUtilities.hh"
 
+#ifdef USE_GDML
+#include "BDSGeometryFactoryGDML.hh"
+#endif
+
 #include "globals.hh" // geant4 globals / types
 #include "G4Box.hh"
 #include "G4LogicalVolume.hh"
