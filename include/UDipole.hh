@@ -68,11 +68,10 @@ private:
   UDipole() = delete;
 
   // Split the construction into steps for our own sanity.
-  void BuildBeamPipe();
-  void BuildMagnetYoke();
-  void BuildChamber();
+  void BuildMagnet();
   void BuildField();
   void SetExtents();
+  void SetVolumeforfield();
 
   // Parameters that determine how udipole is built that need to get
   // from the constructor to Build which is called later on.
@@ -84,12 +83,9 @@ private:
   G4Material* air;
   G4Material* steel;
   G4Material* iron;
-  G4double    pipe1Length;
-  G4double    yokeLength;
-  G4double    chamberLength;
   G4String    colour;
-  BDSBeamPipeInfo* pipe1Info;
   G4LogicalVolume* volumeForField;
+  std::vector<G4LogicalVolume*> magnet_exteriors;
 };
 
 #endif

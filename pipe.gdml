@@ -3,19 +3,27 @@
 	<define/>
 	<materials/>
 	<solids>
-		<box name="ws" x="50" y="50" z="50" lunit="mm"/>
-		<tube name="pipe" rmin="1" rmax="1.2" z="30" startphi="0" deltaphi="6.28" lunit="mm" aunit="rad"/>
+		<box name="ws" x="5000" y="5000" z="5000" lunit="mm"/>
+		<tube name="pipe" rmin="100" rmax="120" z="3000" startphi="0" deltaphi="6.29" lunit="mm" aunit="rad"/>
+		<tube name="inner_pipe" rmin="0" rmax="100" z="3000" startphi="0" deltaphi="6.29" lunit="mm" aunit="rad"/>
 	</solids>
 	<structure>
-		<volume name="b1_l">
+		<volume name="pipe_l">
 			<materialref ref="G4_Fe"/>
 			<solidref ref="pipe"/>
+		</volume>
+		<volume name="inner_pipe_l">
+			<materialref ref="G4_AIR"/>
+			<solidref ref="inner_pipe"/>
 		</volume>
 		<volume name="wl">
 			<materialref ref="G4_Galactic"/>
 			<solidref ref="ws"/>
-			<physvol name="b1_p">
-				<volumeref ref="b1_l"/>
+			<physvol name="pipe_p">
+				<volumeref ref="pipe_l"/>
+			</physvol>
+			<physvol name="inner_pipe_p">
+				<volumeref ref="inner_pipe_l"/>
 			</physvol>
 		</volume>
 	</structure>
