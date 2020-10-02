@@ -4,8 +4,17 @@
 	<materials/>
 	<solids>
 		<box name="ws" x="5000" y="5000" z="5000" lunit="mm"/>
-		<tube name="pipe" rmin="100" rmax="120" z="3000" startphi="0" deltaphi="6.29" lunit="mm" aunit="rad"/>
-		<tube name="inner_pipe" rmin="0" rmax="100" z="3000" startphi="0" deltaphi="6.29" lunit="mm" aunit="rad"/>
+		<tube name="pipe" rmin="100" rmax="120" z="3000" startphi="0" deltaphi="6.283185307179586" lunit="mm" aunit="rad"/>
+		<tube name="inner_pipe" rmin="0" rmax="100" z="3000" startphi="0" deltaphi="6.283185307179586" lunit="mm" aunit="rad"/>
+		<box name="b" x="2000" y="2000" z="2000" lunit="mm"/>
+		<subtraction name="b_1">
+			<first ref="b"/>
+			<second ref="inner_pipe"/>
+		</subtraction>
+		<subtraction name="box">
+			<first ref="b_1"/>
+			<second ref="inner_pipe"/>
+		</subtraction>
 	</solids>
 	<structure>
 		<volume name="pipe_l">
@@ -16,6 +25,10 @@
 			<materialref ref="G4_AIR"/>
 			<solidref ref="inner_pipe"/>
 		</volume>
+		<volume name="box_l">
+			<materialref ref="G4_Fe"/>
+			<solidref ref="box"/>
+		</volume>
 		<volume name="wl">
 			<materialref ref="G4_Galactic"/>
 			<solidref ref="ws"/>
@@ -24,6 +37,9 @@
 			</physvol>
 			<physvol name="inner_pipe_p">
 				<volumeref ref="inner_pipe_l"/>
+			</physvol>
+			<physvol name="box_p">
+				<volumeref ref="box_l"/>
 			</physvol>
 		</volume>
 	</structure>
