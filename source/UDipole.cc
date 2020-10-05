@@ -62,8 +62,7 @@ UDipole::UDipole(G4String name,
 		 G4String params):
   BDSAcceleratorComponent(name, 1.57*CLHEP::m, /*angle*/0, "udipole"),
   bField(bFieldIn),
-  horizontalWidth(1*CLHEP::m),
-  volumeForField(nullptr)
+  horizontalWidth(1*CLHEP::m)
 {
   // these can be used anywhere in the class now
   vacuum = BDSMaterials::Instance()->GetMaterial("vacuum");
@@ -75,7 +74,7 @@ UDipole::UDipole(G4String name,
   // map of strings and values.
   std::map<G4String, G4String> map = BDS::GetUserParametersMap(params);
 
-  SetVolumeforfield();
+  Setvolumesforfields();
 
   // the map is supplied at run time so we must check it actually has the key
   // to avoid throwing an exception.
@@ -90,7 +89,7 @@ UDipole::~UDipole()
 {;}
 
 
-void UDipole::SetVolumeforfield(){
+void UDipole::Setvolumesforfields(){
     BDSGeometryFactoryGDML* gdml = new BDSGeometryFactoryGDML();
     gdml->Build("pipe","./pipe.gdml");
 
@@ -100,13 +99,19 @@ void UDipole::SetVolumeforfield(){
     for (it = logicalvolumes.begin(); it != logicalvolumes.end(); ++it) {
         G4LogicalVolume* f = *it;
         if (f->GetName() == "inner_pipe_l"){
-            volumeForField = f;
+            magnet_pipe_volumes.push_back(f);
+            magnet_volumes.push_back(f);
         }
         else if (f->GetName() == "wl"){
             containerLogicalVolume = f;
         }
+        else if (f->GetMaterial()->GetName() == "G4_Fe"){
+            magnet_yoke_volumes.push_back(f);
+            magnet_volumes.push_back(f);
+        }
         else {
-            magnet_exteriors.push_back(f);
+            magnet_exteriors_volumes.push_back(f);
+            magnet_volumes.push_back(f);
         }
     }
 }
@@ -144,29 +149,19 @@ void UDipole::BuildMagnet()
     G4double zPos = 0;
     G4ThreeVector pipe1Pos = G4ThreeVector(0, 0, zPos);
 
-    auto inner_pipe1PV = new G4PVPlacement(nullptr, // no rotation matrix,
-                                     pipe1Pos,
-                                     volumeForField,
-                                     name + "_bp_1_pv",
-                                     containerLogicalVolume,
-                                     false,
-                                     0,
-                                     checkOverlaps);
-    RegisterPhysicalVolume(inner_pipe1PV); // for deletion by bdsim
+    for (auto it = begin (magnet_volumes); it != end (magnet_volumes); ++it) {
 
-    for (auto it = begin (magnet_exteriors); it != end (magnet_exteriors); ++it) {
+        auto inner_pipe1PV = new G4PVPlacement(nullptr, // no rotation matrix,
+                                               pipe1Pos,
+                                               *it,
+                                               name + "_bp_1_pv",
+                                               containerLogicalVolume,
+                                               false,
+                                               0,
+                                               checkOverlaps);
+        RegisterPhysicalVolume(inner_pipe1PV); // for deletion by bdsim
 
-        auto magnet_element = new G4PVPlacement(nullptr, // no rotation matrix,
-                                         pipe1Pos,
-                                         *it,
-                                         name + "_bp_1_pv",
-                                         containerLogicalVolume,
-                                         false,
-                                         0,
-                                         checkOverlaps);
-        RegisterPhysicalVolume(magnet_element); // for deletion by bdsim
     }
-
 
 }
 
@@ -180,7 +175,7 @@ void UDipole::BuildField()
   (*st)["bz"] = 0;
 
   // we build a recipe for the field - pure dipole using a G4ClassicalRK4 integrator
-  BDSFieldInfo* vacuumField = new BDSFieldInfo(BDSFieldType::dipole,
+  BDSFieldInfo* PipeField = new BDSFieldInfo(BDSFieldType::dipole,
 					       0, // brho - not needed for a pure dipole field
 					       BDSIntegratorType::g4classicalrk4,
 					       st,
@@ -189,10 +184,23 @@ void UDipole::BuildField()
   // We 'register' the field to be constructed on a specific logical volume. All fields
   // are constructed and attached at once as per the Geant4 way of doing things. true
   // means propagate to all daughter volumes.
-  BDSFieldBuilder::Instance()->RegisterFieldForConstruction(vacuumField,
-							    volumeForField,
-							    true);
 
+  for (auto it = begin (magnet_pipe_volumes); it != end (magnet_pipe_volumes); ++it) {
+      BDSFieldBuilder::Instance()->RegisterFieldForConstruction(PipeField,
+                                                                *it,
+                                                                true);
+
+  }
+
+  const G4String& path =  "./fieldmaps/FieldMap_B3G_Complete.dat.gz";
+
+  BDSFieldInfo* mapfield = new BDSFieldInfo( BDSFieldType::bmap3d, 0, BDSIntegratorType::g4classicalrk4, nullptr,true,G4Transform3D(),path,BDSFieldFormat::bdsim3d);
+
+  for (auto it = begin (magnet_yoke_volumes); it != end (magnet_yoke_volumes); ++it) {
+      BDSFieldBuilder::Instance()->RegisterFieldForConstruction(mapfield,
+                                                                *it,
+                                                                true);
+  }
 }
 
 void UDipole::SetExtents()

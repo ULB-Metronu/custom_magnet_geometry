@@ -71,7 +71,7 @@ private:
   void BuildMagnet();
   void BuildField();
   void SetExtents();
-  void SetVolumeforfield();
+  void Setvolumesforfields();
 
   // Parameters that determine how udipole is built that need to get
   // from the constructor to Build which is called later on.
@@ -84,8 +84,10 @@ private:
   G4Material* steel;
   G4Material* iron;
   G4String    colour;
-  G4LogicalVolume* volumeForField;
-  std::vector<G4LogicalVolume*> magnet_exteriors;
+  std::vector<G4LogicalVolume*> magnet_pipe_volumes;
+  std::vector<G4LogicalVolume*> magnet_yoke_volumes;
+  std::vector<G4LogicalVolume*> magnet_exteriors_volumes;
+  std::vector<G4LogicalVolume*> magnet_volumes;
 };
 
 #endif
