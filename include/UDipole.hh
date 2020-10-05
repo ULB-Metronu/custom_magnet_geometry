@@ -49,6 +49,7 @@ public:
   /// Construct as we wish.
   UDipole(G4String name,
 	  G4double bFieldIn,
+	  G4double k1In,
 	  G4String paramsIn);
   
   virtual ~UDipole(); ///< Remember destructor has to be virtual.
@@ -81,6 +82,8 @@ private:
   // Parameters that determine how udipole is built that need to get
   // from the constructor to Build which is called later on.
   G4double bField;
+  G4double brho;
+  G4double k1;
   G4double horizontalWidth;
 
   G4String geometryGdmlPath;

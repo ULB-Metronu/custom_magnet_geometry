@@ -40,7 +40,7 @@ BDSAcceleratorComponent* UDipoleConstructor::Construct(GMAD::Element const* elem
   // If you don't need to use all the parameters, use an /*inline*/ comment to
   // avoid a compiler warning about an unused variable.
   BDSAcceleratorComponent* dipole = new UDipole(element->name,
-						element->B*CLHEP::tesla,
+						element->B*CLHEP::tesla,element->k1,
 						params);
   return dipole;
 }

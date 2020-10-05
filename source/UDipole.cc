@@ -54,9 +54,11 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 
 UDipole::UDipole(G4String name,
 		 G4double bFieldIn,
+		 G4double k1In,
 		 G4String params):
   BDSAcceleratorComponent(name, 1.57*CLHEP::m, /*angle*/0, "udipole"),
   bField(bFieldIn),
+  k1(k1In),
   horizontalWidth(1*CLHEP::m)
 {
     // use function from BDSUtilities to process user params string into
@@ -76,6 +78,12 @@ UDipole::UDipole(G4String name,
     {yokeFieldMap = yokeFieldMapSearch->second;}
     else
     {yokeFieldMap = "fieldmaps/FieldMap_B3G_Complete.dat.gz";}
+
+    auto BrhoSearch = map.find("Brho");
+    if (BrhoSearch != map.end())
+    {brho = stod(BrhoSearch->second);}
+    else
+    {brho = 0;}
 
     gdml = new BDSGeometryFactoryGDML();
     gdml->Build("magnet", geometryGdmlPath);
@@ -130,10 +138,11 @@ void UDipole::BuildField()
   (*st)["bx"] = 1;
   (*st)["by"] = 0;
   (*st)["bz"] = 0;
+  (*st)["k1"] = k1;
 
-  // we build a recipe for the field - pure dipole using a G4ClassicalRK4 integrator
+
   BDSFieldInfo* PipeField = new BDSFieldInfo(BDSFieldType::dipolequadrupole,
-					       0, // brho - not needed for a pure dipole field
+					       brho,
 					       BDSIntegratorType::g4classicalrk4,
 					       st,
 					       true);
