@@ -74,7 +74,7 @@ private:
 
   // Split the construction into steps for our own sanity.
   void BuildMagnet();
-  void BuildField(G4String);
+  void BuildField();
   void SetExtents();
   void Setvolumesforfields();
 

@@ -113,7 +113,7 @@ void UDipole::Setvolumesforfields(){
 void UDipole::Build()
 {
     BuildMagnet();
-    BuildField(yokeFieldMap);
+    BuildField();
     SetExtents();
 }
 
@@ -122,7 +122,7 @@ void UDipole::BuildMagnet()
     RegisterPhysicalVolume(gdml->Getphysicalvolumes());
 }
 
-void UDipole::BuildField(G4String yokeFieldMap)
+void UDipole::BuildField()
 {
   // We build a strength object. We specify the field magnitude and unit direction components.
   BDSMagnetStrength* st = new BDSMagnetStrength();
@@ -132,7 +132,7 @@ void UDipole::BuildField(G4String yokeFieldMap)
   (*st)["bz"] = 0;
 
   // we build a recipe for the field - pure dipole using a G4ClassicalRK4 integrator
-  BDSFieldInfo* PipeField = new BDSFieldInfo(BDSFieldType::dipole,
+  BDSFieldInfo* PipeField = new BDSFieldInfo(BDSFieldType::dipolequadrupole,
 					       0, // brho - not needed for a pure dipole field
 					       BDSIntegratorType::g4classicalrk4,
 					       st,
