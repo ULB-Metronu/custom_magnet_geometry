@@ -43,11 +43,6 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 #include "BDSSimpleComponent.hh"
 #include "BDSUtilities.hh"
 
-#ifdef USE_GDML
-#include "BDSGeometryFactoryGDML.hh"
-#include "G4GDMLParser.hh"
-#endif
-
 #include "globals.hh" // geant4 globals / types
 #include "G4Box.hh"
 #include "G4LogicalVolume.hh"
@@ -64,25 +59,29 @@ UDipole::UDipole(G4String name,
   bField(bFieldIn),
   horizontalWidth(1*CLHEP::m)
 {
-  // these can be used anywhere in the class now
-  vacuum = BDSMaterials::Instance()->GetMaterial("vacuum");
-  air    = BDSMaterials::Instance()->GetMaterial("air");
-  steel  = BDSMaterials::Instance()->GetMaterial("stainlesssteel");
-  iron   = BDSMaterials::Instance()->GetMaterial("G4_Fe");
+    // use function from BDSUtilities to process user params string into
+    // map of strings and values.
+    std::map<G4String, G4String> map = BDS::GetUserParametersMap(params);
 
-  // use function from BDSUtilities to process user params string into
-  // map of strings and values.
-  std::map<G4String, G4String> map = BDS::GetUserParametersMap(params);
+    // the map is supplied at run time so we must check it actually has the key
+    // to avoid throwing an exception.
+    auto geometryGdmlPathSearch = map.find("gdml");
+    if (geometryGdmlPathSearch != map.end())
+    {geometryGdmlPath = geometryGdmlPathSearch->second;}
+    else
+    {geometryGdmlPath = "pipe.gdml";}
 
-  Setvolumesforfields();
+    auto yokeFieldMapSearch = map.find("yokeFieldMap");
+    if (yokeFieldMapSearch != map.end())
+    {yokeFieldMap = yokeFieldMapSearch->second;}
+    else
+    {yokeFieldMap = "fieldmaps/FieldMap_B3G_Complete.dat.gz";}
 
-  // the map is supplied at run time so we must check it actually has the key
-  // to avoid throwing an exception.
-  auto colourSearch = map.find("colour");
-  if (colourSearch != map.end())
-    {colour = colourSearch->second;}
-  else
-    {colour = "rectangularbend";}
+    gdml = new BDSGeometryFactoryGDML();
+    gdml->Build("magnet", geometryGdmlPath);
+
+    Setvolumesforfields();
+
 }
 
 UDipole::~UDipole()
@@ -90,8 +89,6 @@ UDipole::~UDipole()
 
 
 void UDipole::Setvolumesforfields(){
-    BDSGeometryFactoryGDML* gdml = new BDSGeometryFactoryGDML();
-    gdml->Build("pipe","./pipe.gdml");
 
     std::set<G4LogicalVolume*> logicalvolumes =  gdml->Getlogicalvolumes();
 
@@ -100,72 +97,32 @@ void UDipole::Setvolumesforfields(){
         G4LogicalVolume* f = *it;
         if (f->GetName() == "inner_pipe_l"){
             magnet_pipe_volumes.push_back(f);
-            magnet_volumes.push_back(f);
         }
         else if (f->GetName() == "wl"){
             containerLogicalVolume = f;
         }
         else if (f->GetMaterial()->GetName() == "G4_Fe"){
             magnet_yoke_volumes.push_back(f);
-            magnet_volumes.push_back(f);
         }
         else {
             magnet_exteriors_volumes.push_back(f);
-            magnet_volumes.push_back(f);
         }
     }
-}
-
-void UDipole::BuildContainerLogicalVolume()
-{
-
-  // containerSolid is a member of BDSAcceleratorComponent we should fill in
-  containerSolid = new G4Box(name + "_container_solid",
-			     horizontalWidth * 0.5,
-			     horizontalWidth * 0.5,
-			     chordLength * 0.5);
-
-  // containerLogicalVolume is a member of BDSAcceleratorComponent we should fill in
-  containerLogicalVolume = new G4LogicalVolume(containerSolid,
-					       vacuum,
-					       name + "_container_lv");
 }
 
 void UDipole::Build()
 {
-  // Call the base class implementation of this function. This builds the container
-  // logical volume then sets some visualisation attributes for it.
-  BDSAcceleratorComponent::Build();
-
-  BuildMagnet();
-  BuildField();
-  SetExtents();
+    BuildMagnet();
+    BuildField(yokeFieldMap);
+    SetExtents();
 }
 
 void UDipole::BuildMagnet()
 {
-
-    // place the beam pipe in the container
-    G4double zPos = 0;
-    G4ThreeVector pipe1Pos = G4ThreeVector(0, 0, zPos);
-
-    for (auto it = begin (magnet_volumes); it != end (magnet_volumes); ++it) {
-
-        auto inner_pipe1PV = new G4PVPlacement(nullptr, // no rotation matrix,
-                                               pipe1Pos,
-                                               *it,
-                                               name + "_bp_1_pv",
-                                               containerLogicalVolume,
-                                               false,
-                                               0,
-                                               checkOverlaps);
-        RegisterPhysicalVolume(inner_pipe1PV); // for deletion by bdsim
-
-    }
-
+    RegisterPhysicalVolume(gdml->Getphysicalvolumes());
 }
 
-void UDipole::BuildField()
+void UDipole::BuildField(G4String yokeFieldMap)
 {
   // We build a strength object. We specify the field magnitude and unit direction components.
   BDSMagnetStrength* st = new BDSMagnetStrength();
@@ -192,9 +149,7 @@ void UDipole::BuildField()
 
   }
 
-  const G4String& path =  "./fieldmaps/FieldMap_B3G_Complete.dat.gz";
-
-  BDSFieldInfo* mapfield = new BDSFieldInfo( BDSFieldType::bmap3d, 0, BDSIntegratorType::g4classicalrk4, nullptr,true,G4Transform3D(),path,BDSFieldFormat::bdsim3d);
+  BDSFieldInfo* mapfield = new BDSFieldInfo( BDSFieldType::bmap3d, 0, BDSIntegratorType::g4classicalrk4, nullptr,true,G4Transform3D(),yokeFieldMap,BDSFieldFormat::bdsim3d);
 
   for (auto it = begin (magnet_yoke_volumes); it != end (magnet_yoke_volumes); ++it) {
       BDSFieldBuilder::Instance()->RegisterFieldForConstruction(mapfield,

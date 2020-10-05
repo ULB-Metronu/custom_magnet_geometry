@@ -21,6 +21,11 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "BDSAcceleratorComponent.hh"
 
+#ifdef USE_GDML
+#include "BDSGeometryFactoryGDML.hh"
+#include "G4GDMLParser.hh"
+#endif
+
 #include "globals.hh" // geant4 types / globals
 
 // forward declare things that are only needed as pointers
@@ -53,7 +58,7 @@ protected:
   /// should reassign the member containerLogicalVolume and containerSolid
   /// and should be a shape with flat incoming / outgoing ends that's big
   /// enough to encompass the whole object.
-  virtual void BuildContainerLogicalVolume();
+  virtual void BuildContainerLogicalVolume(){;};
 
   /// The more detailed build method. The default implementation in BDSIM
   /// calls BuildContainerLogicalVolume() and then sets some visualisation
@@ -69,7 +74,7 @@ private:
 
   // Split the construction into steps for our own sanity.
   void BuildMagnet();
-  void BuildField();
+  void BuildField(G4String);
   void SetExtents();
   void Setvolumesforfields();
 
@@ -78,16 +83,14 @@ private:
   G4double bField;
   G4double horizontalWidth;
 
-  // We cache but don't own the materials
-  G4Material* vacuum;
-  G4Material* air;
-  G4Material* steel;
-  G4Material* iron;
-  G4String    colour;
+  G4String geometryGdmlPath;
+  BDSGeometryFactoryGDML* gdml;
+
+  G4String yokeFieldMap;
+
   std::vector<G4LogicalVolume*> magnet_pipe_volumes;
   std::vector<G4LogicalVolume*> magnet_yoke_volumes;
   std::vector<G4LogicalVolume*> magnet_exteriors_volumes;
-  std::vector<G4LogicalVolume*> magnet_volumes;
 };
 
 #endif
