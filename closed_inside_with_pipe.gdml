@@ -1,0 +1,64 @@
+<?xml version="1.0" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+	<define/>
+	<materials/>
+	<solids>
+		<box name="ws" x="2000" y="2000" z="2000" lunit="mm"/>
+		<xtru name="b1" lunit="mm">
+			<twoDimVertex x="180" y="-580"/>
+			<twoDimVertex x="180" y="-85.25999999999999"/>
+			<twoDimVertex x="124" y="-32.97999999999999"/>
+			<twoDimVertex x="0" y="-49.999999999999986"/>
+			<twoDimVertex x="-100.36" y="-85.16999999999999"/>
+			<twoDimVertex x="-180.0" y="-210.0"/>
+			<twoDimVertex x="-180.0" y="-220.0"/>
+			<twoDimVertex x="-400" y="-220"/>
+			<twoDimVertex x="-400" y="220"/>
+			<twoDimVertex x="-180" y="220"/>
+			<twoDimVertex x="-180" y="210"/>
+			<twoDimVertex x="-100.36" y="85.17"/>
+			<twoDimVertex x="0.0" y="50.0"/>
+			<twoDimVertex x="124.0" y="32.980000000000004"/>
+			<twoDimVertex x="180.0" y="85.26"/>
+			<twoDimVertex x="180" y="580"/>
+			<twoDimVertex x="-760" y="580"/>
+			<twoDimVertex x="-760" y="-580"/>
+			<section zOrder="0" zPosition="0" xOffset="0" yOffset="0" scalingFactor="1"/>
+			<section zOrder="1" zPosition="417" xOffset="0" yOffset="0" scalingFactor="1"/>
+		</xtru>
+		<tube name="pipe" rmin="40" rmax="45" z="1000" startphi="0" deltaphi="6.283185307179586" lunit="mm" aunit="rad"/>
+		<tube name="inner_pipe" rmin="0" rmax="40" z="1000" startphi="0" deltaphi="6.283185307179586" lunit="mm" aunit="rad"/>
+	</solids>
+	<structure>
+		<volume name="b1_l">
+			<materialref ref="G4_Fe"/>
+			<solidref ref="b1"/>
+		</volume>
+		<volume name="pipe_l">
+			<materialref ref="G4_Fe"/>
+			<solidref ref="pipe"/>
+		</volume>
+		<volume name="inner_pipe_l">
+			<materialref ref="G4_Galactic"/>
+			<solidref ref="inner_pipe"/>
+		</volume>
+		<volume name="wl">
+			<materialref ref="G4_Galactic"/>
+			<solidref ref="ws"/>
+			<physvol name="b1_p">
+				<volumeref ref="b1_l"/>
+			</physvol>
+			<physvol name="pipe_p">
+				<volumeref ref="pipe_l"/>
+				<position name="pipe_p_pos" x="0.000000000000000" y="0.000000000000000" z="200.000000000000000" unit="mm"/>
+			</physvol>
+			<physvol name="inner_pipe_p">
+				<volumeref ref="inner_pipe_l"/>
+				<position name="inner_pipe_p_pos" x="0.000000000000000" y="0.000000000000000" z="200.000000000000000" unit="mm"/>
+			</physvol>
+		</volume>
+	</structure>
+	<setup name="Default" version="1.0">
+		<world ref="wl"/>
+	</setup>
+</gdml>
