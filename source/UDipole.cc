@@ -19,44 +19,30 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 #include "UDipole.hh"
 
 #include "BDSAcceleratorComponent.hh"
-#include "BDSBeamPipe.hh"
-#include "BDSBeamPipeFactory.hh"
 #include "BDSBeamPipeInfo.hh"
 #include "BDSBeamPipeType.hh"
-#include "BDSColours.hh"
 #include "BDSExtent.hh"
 #include "BDSFieldBuilder.hh"
 #include "BDSFieldInfo.hh"
 #include "BDSFieldType.hh"
 #include "BDSIntegratorType.hh"
-#include "BDSMagnetGeometryType.hh"
-#include "BDSMagnetOuter.hh"
-#include "BDSMagnetOuterFactory.hh"
-#include "BDSMagnetOuterInfo.hh"
 #include "BDSMagnetStrength.hh"
 #include "BDSMagnetType.hh"
-#include "BDSMaterials.hh"
-#include "BDSSamplerPlane.hh"
 #include "BDSSamplerRegistry.hh"
 #include "BDSSDSampler.hh" // so we can convert BDSSamplerSD* to G4VSensitiveDetector*
-#include "BDSSDManager.hh"
 #include "BDSSimpleComponent.hh"
 #include "BDSUtilities.hh"
 
 #include "globals.hh" // geant4 globals / types
-#include "G4Box.hh"
 #include "G4LogicalVolume.hh"
 #include "G4Material.hh"
-#include "G4PVPlacement.hh"
-#include "G4RotationMatrix.hh"
-#include "G4ThreeVector.hh"
 #include "G4VisAttributes.hh"
 
 UDipole::UDipole(G4String name,
 		 G4double bFieldIn,
 		 G4double k1In,
 		 G4String params):
-  BDSAcceleratorComponent(name, 1.57*CLHEP::m, /*angle*/0, "udipole"),
+  BDSAcceleratorComponent(name, 1.57*CLHEP::m, /*angle*/0*CLHEP::degree, "udipole"),
   bField(bFieldIn),
   k1(k1In),
   horizontalWidth(1*CLHEP::m)
@@ -85,8 +71,8 @@ UDipole::UDipole(G4String name,
     else
     {brho = 0;}
 
-    gdml = new BDSGeometryFactoryGDML();
-    gdml->Build("magnet", geometryGdmlPath);
+    BDSGeometryFactoryGDML* geometryfactory = new BDSGeometryFactoryGDML();
+    gdml = geometryfactory->Build("magnet", geometryGdmlPath);
 
     Setvolumesforfields();
 
@@ -98,7 +84,7 @@ UDipole::~UDipole()
 
 void UDipole::Setvolumesforfields(){
 
-    std::set<G4LogicalVolume*> logicalvolumes =  gdml->Getlogicalvolumes();
+    std::set<G4LogicalVolume*> logicalvolumes =  gdml->GetAllLogicalVolumes();
 
     std::set<G4LogicalVolume*>::iterator it;
     for (it = logicalvolumes.begin(); it != logicalvolumes.end(); ++it) {
@@ -127,7 +113,7 @@ void UDipole::Build()
 
 void UDipole::BuildMagnet()
 {
-    RegisterPhysicalVolume(gdml->Getphysicalvolumes());
+    RegisterPhysicalVolume(gdml->GetAllPhysicalVolumes());
 }
 
 void UDipole::BuildField()

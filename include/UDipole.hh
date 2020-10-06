@@ -23,6 +23,7 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef USE_GDML
 #include "BDSGeometryFactoryGDML.hh"
+#include "BDSGeometryExternal.hh"
 #include "G4GDMLParser.hh"
 #endif
 
@@ -87,7 +88,7 @@ private:
   G4double horizontalWidth;
 
   G4String geometryGdmlPath;
-  BDSGeometryFactoryGDML* gdml;
+  BDSGeometryExternal* gdml;
 
   G4String yokeFieldMap;
 
